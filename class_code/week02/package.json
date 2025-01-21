@@ -1,5 +1,5 @@
 {
-  "name": "week01",
+  "name": "week02",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -9,9 +9,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "lodash": "^4.17.21",
-    "week01": "file:"
+    "week02": "file:"
+  },
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
