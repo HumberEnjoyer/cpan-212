@@ -4,7 +4,7 @@ import "./App.css";
 const App = () => {
   // what do we need to track
   const [singleFile, setSingleFile] = useState(null);
-  const [multipleFiles, setMultipleFiles] = useState([]); 
+  const [multipleFiles, setMultipleFiles] = useState([]);
   const [displayImage, setDisplayImage] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -19,6 +19,12 @@ const App = () => {
     if (e.target.files.length > 0) {
       setSingleFile(e.target.files[0]);
     }
+  };
+
+  // Handler for multiple-file upload 
+  const handleMultipleFileChange = (e) => {
+    // e.target.files is a FileList
+    setMultipleFiles(Array.from(e.target.files));
   };
 
   // fetch functions -> fetch a random single image
@@ -60,6 +66,38 @@ const App = () => {
       setMessage("File uploaded successfully!");
     } catch (error) {
       console.log("Error:", error);
+    }
+  };
+
+   // Upload multiple files
+   const handleSubmitMultipleFiles = async (e) => {
+    e.preventDefault();
+    if (multipleFiles.length === 0) {
+      setMessage("Please select one or more files before uploading.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      
+      multipleFiles.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await fetch("http://localhost:8000/save/multiple", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Multiple file upload failed");
+      }
+      setMessage(`Successfully uploaded ${multipleFiles.length} files!`);
+      // Reset the files in state
+      setMultipleFiles([]);
+    } catch (error) {
+      console.error("Error uploading multiple files:", error);
     }
   };
 
@@ -126,29 +164,43 @@ const App = () => {
   };
 
   return (
-    <div>
-       <div className="container">
-      <p>{message}</p>
+    <div className="container">
+    {/* Display messages */}
+    {message && <div className="message">{message}</div>}
 
-      {/* Existing single-file fetch and upload */}
-      <h2>Fetch Single Random Image</h2>
-      <button onClick={fetchSingleFile}>Fetch Single File</button>
-      {displayImage && (
-        <div>
-          <h3>Single File</h3>
-          <img
-            src={displayImage}
-            alt="Display"
-            style={{ width: "200px", marginTop: "10px" }}
-          />
-        </div>
-      )}
+          {/* Fetch Single Random Image */}
+      <section className="section">
+        <h2>Fetch Single Random Image</h2>
+        <button onClick={fetchSingleFile}>Fetch Single File</button>
+        {displayImage && (
+          <div style={{ marginTop: "10px" }}>
+            <img src={displayImage} alt="Display" width="200" />
+          </div>
+        )}
+      </section>
 
-      <form onSubmit={handleSubmitSingleFile}>
+      {/* Upload Single File */}
+      <section className="section">
         <h2>Upload Single File</h2>
-        <input type="file" onChange={handleSingleFileChange} />
-        <button type="submit">Upload Single File</button>
-      </form>
+        <form onSubmit={handleSubmitSingleFile}>
+          <input type="file" onChange={handleSingleFileChange} />
+          <button type="submit">Upload Single File</button>
+        </form>
+      </section>
+
+      {/*Upload Multiple Files */}
+      <section className="section">
+        <h2>Upload Multiple Files</h2>
+        <form onSubmit={handleSubmitMultipleFiles}>
+          <input type="file" multiple onChange={handleMultipleFileChange} />
+          <button type="submit">Upload Multiple Files</button>
+        </form>
+        {multipleFiles.length > 0 && (
+          <div style={{ marginTop: "10px" }}>
+            <p>Selected {multipleFiles.length} files to upload.</p>
+          </div>
+        )}
+      </section>
 
       {/* Fetch multiple images from server */}
       <hr />
@@ -182,7 +234,7 @@ const App = () => {
         Upload This Dog to Server
       </button>
     </div>
-    </div>
+    
   );
 };
 
